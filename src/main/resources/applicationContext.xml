@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context.xsd
+       http://www.springframework.org/schema/tx
+       http://www.springframework.org/schema/tx/spring-tx.xsd
+       http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!-- 注解扫描-->
+    <context:component-scan base-package="com.jbit.service"/>
+    <!-- 引入配置文件-->
+    <context:property-placeholder system-properties-mode="NEVER" location="classpath:/db.properties"/>
+
+    <!-- 配置数据源-->
+    <bean class="com.alibaba.druid.pool.DruidDataSource" id="dataSource">
+    <property value="${driver}" name="driverClassName"/>
+    <property value="${url}" name="url"/>
+    <property value="${username}" name="username"/>
+    <property value="${password}" name="password"/>
+    </bean>
+    <!-- 配置数据工厂-->
+    <bean class="org.mybatis.spring.SqlSessionFactoryBean" id="sqlSessionFactory">
+    <property name="dataSource" ref="dataSource"/>
+    <property name="plugins">
+            <array>
+                <bean class="com.github.pagehelper.PageInterceptor">
+                    <!-- 这里的几个配置主要演示如何使用，如果不理解，一定要去掉下面的配置 -->
+                    <property name="properties">
+                        <value>
+                            helperDialect=mysql
+                            reasonable=true
+                        </value>
+                    </property>
+                </bean>
+            </array>
+    </property>
+    </bean>
+
+    <!-- mapper扫描-->
+    <bean class="tk.mybatis.spring.mapper.MapperScannerConfigurer">
+    <property value="sqlSessionFactory" name="sqlSessionFactoryBeanName"/>
+    <property value="com.jbit.mapper" name="basePackage"/>
+    </bean>
+
+    <!--事务注解-->
+    <bean class="org.springframework.jdbc.datasource.DataSourceTransactionManager" id="transactionManager">
+    <property name="dataSource" ref="dataSource"/>
+    </bean>
+    <tx:annotation-driven transaction-manager="transactionManager"/>
+</beans>
